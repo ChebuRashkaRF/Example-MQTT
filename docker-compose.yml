@@ -1,0 +1,42 @@
+version: '3.1'
+
+services:
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+      - "8090:8090"
+    environment:
+      - INFLUXDB_DB=arconoid
+      - INFLUXDB_ADMIN_ENABLED=true
+      - INFLUXDB_ADMIN_USER=telegraf
+      - INFLUXDB_ADMIN_PASSWORD=telegraf
+
+    volumes:
+      - influxdb-storage:/var/lib/influxdb
+
+  mosquitto:
+    image: eclipse-mosquitto:1.6
+    hostname: mosquitto
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+  
+  subscriber:
+    build:
+      context: .
+      dockerfile: subscriber.Dockerfile
+    command: "python3 subscriber.py"
+    container_name: subscriber
+    depends_on:
+      - influxdb
+      - mosquitto
+    network_mode: host
+      
+volumes:
+  influxdb-storage:
+
+    
